@@ -1,0 +1,65 @@
+{
+  "name": "next-log-terminal",
+  "version": "1.0.0",
+  "description": "See all your Next.js logs in the terminal - browser, server, everywhere",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "test:all": "npm run test && npm run test:e2e",
+    "format": "biome check .",
+    "format:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
+    "dev:test-app": "cd test-app && npm run dev",
+    "build:test-app": "cd test-app && npm run build"
+  },
+  "keywords": [
+    "nextjs",
+    "logger",
+    "logging",
+    "terminal",
+    "server-actions",
+    "typescript",
+    "next-log-terminal"
+  ],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "next": ">=13.4.0",
+    "react": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.1.1",
+    "@playwright/test": "^1.40.0",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.45",
+    "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^8.55.0",
+    "jsdom": "^26.1.0",
+    "next": "^14.0.4",
+    "react": "^18.2.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.1.0"
+  }
+}
