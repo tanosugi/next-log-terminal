@@ -129,18 +129,42 @@ test.describe('next-log-terminal Demo App E2E', () => {
     await expect(page.locator('text=Count: 1')).toBeVisible();
   });
 
-  test('should log "Button clicked" when Click me button is clicked', async ({ page }) => {
-    // クライアントサイドのログとサーバーアクションの実行を確認します
-    const consoleLogs: string[] = [];
-    const consoleInfos: string[] = [];
+  test('should log "Button clicked" when Click me button is clicked', async ({
+    page,
+  }) => {
+    // Mock API endpoint to capture requests
+    await page.route('/api/log-terminal', async (route) => {
+      const request = route.request();
+      const postData = request.postData();
 
-    page.on('console', (msg) => {
-      const text = msg.text();
-      if (msg.type() === 'info') {
-        consoleInfos.push(text);
-      } else if (msg.type() === 'log') {
-        consoleLogs.push(text);
+      // Store request for verification
+      if (postData) {
+        const requestData = JSON.parse(postData);
+        // Store in test logs for verification
+        await page.request.post('/api/test-logs', {
+          data: {
+            action: 'add',
+            logData: {
+              level: requestData.level,
+              message: requestData.message,
+              args: requestData.args,
+              metadata: requestData.metadata,
+            },
+          },
+        });
       }
+
+      // Respond with success
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      });
+    });
+
+    // Start server log capture
+    await page.request.post('/api/test-logs', {
+      data: { action: 'start' },
     });
 
     await page.goto('/');
@@ -152,23 +176,29 @@ test.describe('next-log-terminal Demo App E2E', () => {
     // カウントが更新されることを確認
     await expect(page.locator('text=Count: 1')).toBeVisible();
 
-    // Wait a bit for logs to be processed
+    // Wait for API call to complete
     await page.waitForTimeout(1000);
 
-    // クライアントサイドで "Button clicked" ログが出力されることを確認
-    const hasButtonClickedLog = consoleInfos.some((log) => 
-      log.includes('Button clicked') && log.includes('count: 1')
-    );
-    
-    expect(hasButtonClickedLog).toBe(true);
+    // Get captured server logs
+    const logsResponse = await page.request.get('/api/test-logs');
+    const logsData = await logsResponse.json();
 
-    // サーバーアクションが呼び出されることを確認
-    // (エラーがない場合は正常にサーバーに送信されている)
-    const hasUnexpectedError = consoleLogs.some((log) => 
-      log.includes('Invariant: headers() expects to have requestAsyncStorage')
+    // Stop log capture
+    await page.request.post('/api/test-logs', {
+      data: { action: 'stop' },
+    });
+
+    // Verify logs were captured
+    expect(logsData.logs.length).toBeGreaterThan(0);
+
+    // Find the "Button clicked" log
+    const buttonClickedLog = logsData.logs.find((log: any) =>
+      log.message?.includes('Button clicked'),
     );
-    
-    // 以前のheaders()エラーが出ないことを確認（修正が効いている証拠）
-    expect(hasUnexpectedError).toBe(false);
+
+    expect(buttonClickedLog).toBeDefined();
+    expect(buttonClickedLog.level).toBe('info');
+    expect(buttonClickedLog.args[0]).toHaveProperty('count', 1);
+    expect(buttonClickedLog.metadata).toHaveProperty('timestamp');
   });
 });

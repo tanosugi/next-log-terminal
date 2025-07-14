@@ -4,12 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "fuser -k 3000/tcp || true && next dev",
-    "build": "next build",
-    "start": "next start",
-    "test": "vitest",
-    "test:e2e": "playwright test",
-    "test:all": "npm run test && npm run test:e2e"
+    "postinstall": "npx playwright install chromium"
   },
   "dependencies": {
     "next": "^14.0.4",

@@ -11,27 +11,44 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
-    "./server": {
-      "types": "./dist/server.d.ts",
-      "import": "./dist/server.mjs",
-      "require": "./dist/server.js"
+    "./api-route": {
+      "types": "./dist/api-route-template.d.ts",
+      "import": "./dist/api-route-template.mjs",
+      "require": "./dist/api-route-template.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "dev": "tsup --watch",
-    "build": "tsup",
-    "test": "vitest",
-    "test:e2e": "playwright test",
-    "test:all": "npm run test && npm run test:e2e",
-    "format": "biome check .",
-    "format:fix": "biome check --write .",
-    "typecheck": "tsc --noEmit",
+    "npm-install": "npm install && cd test-app && npm install",
+    "project:dev": "tsup --watch",
+    "project:build": "tsup",
+    "project:format": "biome check .",
+    "project:format:fix": "biome check --write .",
+    "project:typecheck": "tsc --noEmit",
+    "project:clean": "rm -rf node_modules dist package-lock.json",
+    "project:test": "vitest run",
+    "test-app:npm-install": "cd test-app && npm install",
+    "test-app:dev": "cd test-app && fuser -k 3000/tcp || true && next dev",
+    "test-app:build": "cd test-app && next build",
+    "test-app:start": "cd test-app && next start",
+    "test-app:test:vitest": "cd test-app && npx vitest run",
+    "test-app:test:e2e": "cd test-app && npx playwright test",
+    "test-app:test": "npm run test-app:test:vitest && npm run test-app:test:e2e",
+    "test-app:clean": "cd test-app && rm -rf node_modules .next package-lock.json",
+    "test": "npm run project:test && npm run test-app:test",
+    "clean": "npm run project:clean && npm run test-app:clean",
+    "build": "npm run project:build",
+    "dev": "npm run project:dev",
+    "format": "npm run project:format",
+    "format:fix": "npm run project:format:fix",
     "prepublishOnly": "npm run build",
-    "dev:test-app": "cd test-app && npm run dev",
-    "build:test-app": "cd test-app && npm run build"
+    "playwright:install": "cd test-app && npx playwright install chromium",
+    "publish-npm": "npm publish --access public",
+    "version": "npm pkg get version",
+    "version:patch": "npm version patch",
+    "can-npm-publish": "npx can-npm-publish --verbose"
   },
   "keywords": [
     "nextjs",
@@ -50,7 +67,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.1",
-    "@playwright/test": "^1.40.0",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.45",
     "@vitejs/plugin-react": "^4.2.1",

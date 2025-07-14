@@ -1,6 +1,6 @@
-"use server"
+'use server';
 
 export const serverActions = async () => {
-    console.log('serverAction');
-    return "serverAction";
-  };
+  console.log('serverAction');
+  return 'serverAction';
+};

@@ -7,7 +7,6 @@ import { serverActions } from '../actions/serveractions';
 export default function Button() {
   const [count, setCount] = useState(0);
 
-  
   const handleClick = () => {
     logger.info('Button clicked', {
       count: count + 1,
@@ -41,6 +40,7 @@ export default function Button() {
 
       <div className="space-x-2">
         <button
+          type="button"
           onClick={handleClick}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
         >
@@ -48,6 +48,7 @@ export default function Button() {
         </button>
 
         <button
+          type="button"
           onClick={handleReset}
           className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors"
         >
@@ -55,13 +56,15 @@ export default function Button() {
         </button>
 
         <button
+          type="button"
           onClick={handleError}
           className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
         >
           Test Error
         </button>
         <button
-          onClick={()=>serverActions()}
+          type="button"
+          onClick={() => serverActions()}
           className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
         >
           Server Action

@@ -4,6 +4,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 describe('Logger Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock window to simulate client-side environment
+    Object.defineProperty(global, 'window', {
+      value: { location: { pathname: '/test' } },
+      writable: true,
+    });
+    // Mock fetch for logToServer calls
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true }),
+    });
   });
 
   describe('Basic logging functionality', () => {
@@ -15,10 +25,12 @@ describe('Logger Integration Tests', () => {
     });
 
     it('should log debug messages', () => {
+      logger.updateConfig({ logLevel: 'debug' });
       logger.debug('Integration test debug message', { data: 'test' });
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('[DEBUG]'),
-        'Integration test debug message',
+        '%c[DEBUG]%c Integration test debug message',
+        'color: #6b7280; font-weight: bold;',
+        'color: inherit;',
         { data: 'test' },
       );
     });
@@ -69,7 +81,9 @@ describe('Logger Integration Tests', () => {
   });
 
   describe('Advanced features', () => {
-    it('should handle complex data objects', () => {
+    it('should handle complex data objects', async () => {
+      // Ensure info level logging is enabled
+      logger.updateConfig({ logLevel: 'debug' });
       const complexData = {
         user: { id: 123, name: 'Test User' },
         settings: { theme: 'dark', notifications: true },
@@ -77,6 +91,8 @@ describe('Logger Integration Tests', () => {
       };
 
       logger.info('Complex data logging', complexData);
+      // Wait for any async operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
       expect(console.info).toHaveBeenCalledWith(
         'Complex data logging',
         complexData,
@@ -84,17 +100,21 @@ describe('Logger Integration Tests', () => {
     });
 
     it('should handle array data', () => {
+      logger.updateConfig({ logLevel: 'debug' });
       const arrayData = [1, 2, 3, { id: 4, name: 'test' }];
       logger.debug('Array data logging', arrayData);
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('[DEBUG]'),
-        'Array data logging',
+        '%c[DEBUG]%c Array data logging',
+        'color: #6b7280; font-weight: bold;',
+        'color: inherit;',
         arrayData,
       );
     });
 
-    it('should handle multiple arguments', () => {
+    it('should handle multiple arguments', async () => {
       logger.info('Multiple args', 'arg1', 'arg2', { data: 'test' }, [1, 2, 3]);
+      // Wait for any async operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 0));
       expect(console.info).toHaveBeenCalledWith(
         'Multiple args',
         'arg1',

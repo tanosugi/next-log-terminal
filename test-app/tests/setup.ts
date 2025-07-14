@@ -1,14 +1,12 @@
 import { beforeEach, vi } from 'vitest';
 
 beforeEach(() => {
-  global.console = {
-    ...console,
-    log: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    group: vi.fn(),
-    groupEnd: vi.fn(),
-    table: vi.fn(),
-  };
+  // Mock console methods for testing
+  vi.spyOn(console, 'log').mockImplementation(() => {});
+  vi.spyOn(console, 'info').mockImplementation(() => {});
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+  vi.spyOn(console, 'group').mockImplementation(() => {});
+  vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
+  vi.spyOn(console, 'table').mockImplementation(() => {});
 });

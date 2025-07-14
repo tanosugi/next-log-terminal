@@ -4,6 +4,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 describe('Complete next-log-terminal Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock window to simulate client-side environment
+    Object.defineProperty(global, 'window', {
+      value: { location: { pathname: '/test' } },
+      writable: true,
+    });
+    // Mock fetch for logToServer calls
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ success: true }),
+    });
   });
 
   describe('Package Export Tests', () => {
@@ -26,6 +36,8 @@ describe('Complete next-log-terminal Integration Tests', () => {
 
   describe('Comprehensive Logging Tests', () => {
     it('should handle all log levels', () => {
+      // Set log level to debug to ensure debug messages are logged
+      logger.updateConfig({ logLevel: 'debug' });
       logger.debug('Debug message');
       logger.log('Log message');
       logger.info('Info message');
@@ -33,8 +45,9 @@ describe('Complete next-log-terminal Integration Tests', () => {
       logger.error('Error message');
 
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('[DEBUG]'),
-        'Debug message',
+        '%c[DEBUG]%c Debug message',
+        'color: #6b7280; font-weight: bold;',
+        'color: inherit;',
       );
       expect(console.log).toHaveBeenCalledWith('Log message');
       expect(console.info).toHaveBeenCalledWith('Info message');
@@ -136,8 +149,9 @@ describe('Complete next-log-terminal Integration Tests', () => {
             expect(console.info).toHaveBeenCalled();
             expect(console.log).toHaveBeenCalledWith('log');
             expect(console.log).toHaveBeenCalledWith(
-              expect.stringContaining('[DEBUG]'),
-              'debug',
+              '%c[DEBUG]%c debug',
+              'color: #6b7280; font-weight: bold;',
+              'color: inherit;',
             );
             break;
         }

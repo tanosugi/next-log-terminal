@@ -18,7 +18,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: 'cd .. && npm run test-app:dev',
     port: 3000,
     reuseExistingServer: !process.env.CI,
   },

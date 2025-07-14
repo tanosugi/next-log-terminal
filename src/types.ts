@@ -5,6 +5,7 @@ export interface LoggerConfig {
   showFunctionName: boolean;
   useColors: boolean;
   logLevel: 'error' | 'warn' | 'info' | 'log' | 'debug';
+  apiEndpoint: string;
 }
 
 export interface LogMetadata {

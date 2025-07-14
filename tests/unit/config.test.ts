@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { getLoggerConfig } from '../../src/config';
 
 describe('Logger Configuration', () => {
@@ -7,6 +7,7 @@ describe('Logger Configuration', () => {
     delete process.env.NEXT_PUBLIC_LOG_TIMESTAMP;
     delete process.env.NEXT_PUBLIC_LOG_FILENAME;
     delete process.env.NEXT_PUBLIC_LOG_LEVEL;
+    delete process.env.NEXT_PUBLIC_LOG_API_ENDPOINT;
   });
 
   it('should return default configuration', () => {
@@ -18,6 +19,7 @@ describe('Logger Configuration', () => {
       showFunctionName: false,
       useColors: true,
       logLevel: 'log',
+      apiEndpoint: '/api/log-terminal',
     });
   });
 

@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   logger.info('Middleware executed', {
     path: request.nextUrl.pathname,
     method: request.method,
-    userAgent: request.headers.get('user-agent')?.substring(0, 100) + '...',
+    userAgent: `${request.headers.get('user-agent')?.substring(0, 100)}...`,
     timestamp: new Date().toISOString(),
   });
 

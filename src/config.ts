@@ -7,6 +7,7 @@ const defaultConfig: LoggerConfig = {
   showFunctionName: false,
   useColors: true,
   logLevel: 'log',
+  apiEndpoint: '/api/log-terminal',
 };
 
 export function getLoggerConfig(): LoggerConfig {
@@ -19,6 +20,8 @@ export function getLoggerConfig(): LoggerConfig {
     logLevel:
       (process.env.NEXT_PUBLIC_LOG_LEVEL as LoggerConfig['logLevel']) ||
       defaultConfig.logLevel,
+    apiEndpoint:
+      process.env.NEXT_PUBLIC_LOG_API_ENDPOINT || defaultConfig.apiEndpoint,
   };
 
   const buildTimeConfig = (globalThis as any).__NEXT_LOGGER_CONFIG__ || {};

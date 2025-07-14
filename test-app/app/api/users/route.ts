@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   logger.info('API request received', {
     url: request.url,
     method: request.method,
-    userAgent: request.headers.get('user-agent')?.substring(0, 50) + '...',
+    userAgent: `${request.headers.get('user-agent')?.substring(0, 50)}...`,
   });
 
   try {

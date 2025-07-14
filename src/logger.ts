@@ -26,10 +26,37 @@ function extractCallerInfo(): {
     }
   }
 
-  const match = callerLine.match(/at\s+(?:(.+?)\s+\()?(.+?):(\d+):(\d+)\)?/);
+  // Try multiple patterns for function name extraction
+  let match = callerLine.match(/at\s+([^(\s]+)\s+\((.+?):(\d+):(\d+)\)/);
+  if (!match) {
+    match = callerLine.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/);
+  }
+  if (!match) {
+    match = callerLine.match(/at\s+(.+?):(\d+):(\d+)/);
+  }
 
   if (match) {
-    const [, functionName, filePath, lineNumber, columnNumber] = match;
+    let functionName = 'anonymous';
+    let filePath = '';
+    let lineNumber = '';
+    let columnNumber = '';
+
+    if (match.length === 5) {
+      // Function name with parentheses: at functionName (file:line:col)
+      [, functionName, filePath, lineNumber, columnNumber] = match;
+    } else if (match.length === 4) {
+      // No function name: at file:line:col
+      [, filePath, lineNumber, columnNumber] = match;
+    }
+
+    // Clean up function name
+    if (functionName && functionName !== 'anonymous') {
+      functionName = functionName
+        .replace(/^Object\./, '') // Remove Object. prefix
+        .replace(/\s+/g, '') // Remove spaces
+        .replace(/\[.*?\]/g, '') // Remove [as xxx] parts
+        .trim();
+    }
 
     let fileName = filePath;
     if (filePath.includes('webpack-internal:')) {
@@ -99,9 +126,22 @@ export class UnifiedLogger {
           typeof window !== 'undefined' ? window.location.pathname : undefined,
       };
 
-      // Dynamic import to avoid loading Next.js dependencies at initialization
-      const { serverLog } = await import('./server-action');
-      await serverLog(level, message, args, metadata);
+      const response = await fetch(this.config.apiEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          level,
+          message,
+          args,
+          metadata,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
     } catch (error) {
       console.error('Failed to send log to server:', error);
       console[level](message, ...args);

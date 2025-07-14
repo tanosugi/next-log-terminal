@@ -1,15 +1,9 @@
 'use client';
 
-import { logger } from 'next-log-terminal';
 import type { ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
-}
-
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
 }
 
 export default function ErrorBoundary({ children }: ErrorBoundaryProps) {
