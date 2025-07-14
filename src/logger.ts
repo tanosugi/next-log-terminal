@@ -7,7 +7,6 @@ function extractCallerInfo(): {
   fileName?: string;
   lineNumber?: number;
   columnNumber?: number;
-  functionName?: string;
 } {
   const error = new Error();
   const stack = error.stack || '';
@@ -26,36 +25,22 @@ function extractCallerInfo(): {
     }
   }
 
-  // Try multiple patterns for function name extraction
-  let match = callerLine.match(/at\s+([^(\s]+)\s+\((.+?):(\d+):(\d+)\)/);
+  // Try multiple patterns for file path extraction
+  let match = callerLine.match(/at\s+[^(\s]+\s+\((.+?):(\d+):(\d+)\)/);
   if (!match) {
-    match = callerLine.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/);
+    match = callerLine.match(/at\s+.+?\s+\((.+?):(\d+):(\d+)\)/);
   }
   if (!match) {
     match = callerLine.match(/at\s+(.+?):(\d+):(\d+)/);
   }
 
   if (match) {
-    let functionName = 'anonymous';
     let filePath = '';
     let lineNumber = '';
     let columnNumber = '';
 
-    if (match.length === 5) {
-      // Function name with parentheses: at functionName (file:line:col)
-      [, functionName, filePath, lineNumber, columnNumber] = match;
-    } else if (match.length === 4) {
-      // No function name: at file:line:col
+    if (match.length === 4) {
       [, filePath, lineNumber, columnNumber] = match;
-    }
-
-    // Clean up function name
-    if (functionName && functionName !== 'anonymous') {
-      functionName = functionName
-        .replace(/^Object\./, '') // Remove Object. prefix
-        .replace(/\s+/g, '') // Remove spaces
-        .replace(/\[.*?\]/g, '') // Remove [as xxx] parts
-        .trim();
     }
 
     let fileName = filePath;
@@ -73,7 +58,6 @@ function extractCallerInfo(): {
       fileName,
       lineNumber: parseInt(lineNumber, 10),
       columnNumber: parseInt(columnNumber, 10),
-      functionName: functionName || 'anonymous',
     };
   }
 
@@ -187,10 +171,6 @@ export class UnifiedLogger {
         }
       }
       metaParts.push(filePart);
-    }
-
-    if (this.config.showFunctionName && callerInfo.functionName) {
-      metaParts.push(`in ${callerInfo.functionName}()`);
     }
 
     const metaString = metaParts.join(' ');

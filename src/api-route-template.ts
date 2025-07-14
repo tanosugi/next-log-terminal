@@ -10,7 +10,6 @@ interface LogRequest {
     fileName?: string;
     lineNumber?: number;
     columnNumber?: number;
-    functionName?: string;
     pathname?: string;
   };
 }
@@ -45,7 +44,6 @@ export async function POST(request: NextRequest) {
       showTimestamp: process.env.NEXT_PUBLIC_LOG_TIMESTAMP !== 'false',
       showFileName: process.env.NEXT_PUBLIC_LOG_FILENAME !== 'false',
       showLineNumber: process.env.NEXT_PUBLIC_LOG_LINENUMBER !== 'false',
-      showFunctionName: process.env.NEXT_PUBLIC_LOG_FUNCTION === 'true',
       useColors: process.env.NEXT_PUBLIC_LOG_COLORS !== 'false',
     };
 
@@ -70,10 +68,6 @@ export async function POST(request: NextRequest) {
         }
       }
       metaParts.push(filePart);
-    }
-
-    if (config.showFunctionName && logData.metadata.functionName) {
-      metaParts.push(`in ${logData.metadata.functionName}()`);
     }
 
     const metaString = metaParts.join(' ');

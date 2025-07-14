@@ -2,7 +2,6 @@ export interface LoggerConfig {
   showTimestamp: boolean;
   showFileName: boolean;
   showLineNumber: boolean;
-  showFunctionName: boolean;
   useColors: boolean;
   logLevel: 'error' | 'warn' | 'info' | 'log' | 'debug';
   apiEndpoint: string;
@@ -13,7 +12,6 @@ export interface LogMetadata {
   fileName?: string;
   lineNumber?: number;
   columnNumber?: number;
-  functionName?: string;
   pathname?: string;
   userAgent?: string;
 }

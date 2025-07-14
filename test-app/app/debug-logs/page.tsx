@@ -1,7 +1,7 @@
 'use client';
 
 import { logger } from 'next-log-terminal';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface LogEntry {
   timestamp: string;
@@ -17,7 +17,7 @@ export default function DebugLogsPage() {
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [filter, setFilter] = useState<string>('all');
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       const response = await fetch('/api/test-logs');
       const data = await response.json();
@@ -26,7 +26,7 @@ export default function DebugLogsPage() {
     } catch (error) {
       console.error('Failed to fetch logs:', error);
     }
-  };
+  }, []);
 
   const startCapture = async () => {
     try {
@@ -219,8 +219,11 @@ export default function DebugLogsPage() {
           </label>
 
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">Filter:</label>
+            <label htmlFor="filter-select" className="text-sm font-medium">
+              Filter:
+            </label>
             <select
+              id="filter-select"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               className="px-3 py-1 border border-gray-300 rounded text-sm"
@@ -255,7 +258,10 @@ export default function DebugLogsPage() {
           </div>
         ) : (
           filteredLogs.map((log, index) => (
-            <div key={index} className="mb-2 border-b border-gray-700 pb-2">
+            <div
+              key={`${log.timestamp}-${index}`}
+              className="mb-2 border-b border-gray-700 pb-2"
+            >
               <div className="flex items-start gap-4">
                 <span className="text-gray-400 text-xs whitespace-nowrap">
                   {new Date(log.timestamp).toLocaleTimeString()}
@@ -270,7 +276,10 @@ export default function DebugLogsPage() {
               {log.args && log.args.length > 0 && (
                 <div className="ml-20 mt-1 text-yellow-300">
                   {log.args.map((arg, argIndex) => (
-                    <div key={argIndex} className="text-xs">
+                    <div
+                      key={`${log.timestamp}-arg-${argIndex}`}
+                      className="text-xs"
+                    >
                       {typeof arg === 'object'
                         ? JSON.stringify(arg, null, 2)
                         : String(arg)}

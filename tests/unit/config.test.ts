@@ -16,7 +16,6 @@ describe('Logger Configuration', () => {
       showTimestamp: true,
       showFileName: true,
       showLineNumber: true,
-      showFunctionName: false,
       useColors: true,
       logLevel: 'log',
       apiEndpoint: '/api/log-terminal',

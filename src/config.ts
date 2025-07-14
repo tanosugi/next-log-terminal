@@ -4,7 +4,6 @@ const defaultConfig: LoggerConfig = {
   showTimestamp: true,
   showFileName: true,
   showLineNumber: true,
-  showFunctionName: false,
   useColors: true,
   logLevel: 'log',
   apiEndpoint: '/api/log-terminal',
@@ -15,7 +14,6 @@ export function getLoggerConfig(): LoggerConfig {
     showTimestamp: process.env.NEXT_PUBLIC_LOG_TIMESTAMP !== 'false',
     showFileName: process.env.NEXT_PUBLIC_LOG_FILENAME !== 'false',
     showLineNumber: process.env.NEXT_PUBLIC_LOG_LINENUMBER !== 'false',
-    showFunctionName: process.env.NEXT_PUBLIC_LOG_FUNCTION === 'true',
     useColors: process.env.NEXT_PUBLIC_LOG_COLORS !== 'false',
     logLevel:
       (process.env.NEXT_PUBLIC_LOG_LEVEL as LoggerConfig['logLevel']) ||
