@@ -22,7 +22,7 @@
 
 - 🌐 **Unified Logging**: Same API for both client and server components
 - 🖥️ **Terminal Output**: See browser console logs in your terminal
-- 🚀 **Server Actions**: No API routes needed - uses Next.js Server Actions
+- 🚀 **API Routes**: Uses Next.js API Routes for reliable client-to-server log transport
 - 🎨 **Pretty Output**: Color-coded logs with timestamps and file locations
 - ⚡ **Zero Config**: Works out of the box with sensible defaults
 - 🔧 **Fully Configurable**: Customize output format via environment variables
@@ -59,10 +59,10 @@ pnpm add next-log-terminal
 
 ### Basic Setup
 
-1. **Create a server action file** (`app/actions/logger.ts`):
+1. **Create an API route file** (`app/api/log-terminal/route.ts`):
 
 ```typescript
-export { serverLog } from 'next-log-terminal/server';
+export { POST } from 'next-log-terminal/api-route';
 ```
 
 2. **Use the logger anywhere**:
@@ -145,6 +145,9 @@ NEXT_PUBLIC_LOG_COLORS=true         # Enable colors (default: true)
 
 # Log level
 NEXT_PUBLIC_LOG_LEVEL=debug         # error | warn | info | log | debug (default: log)
+
+# API endpoint (for client logs)
+NEXT_PUBLIC_LOG_API_ENDPOINT=/api/log-terminal  # API endpoint URL (default: /api/log-terminal)
 ```
 
 ### Programmatic Configuration
@@ -313,15 +316,15 @@ export function middleware(request: NextRequest) {
 - **Minimal overhead**: Logs are sent asynchronously
 - **No blocking**: Failed server logs fall back to console
 - **Tree-shakeable**: Unused methods are removed in production
-- **Lazy loading**: Server action is only loaded when needed
+- **Lazy loading**: API route is only loaded when needed
 
 ## 🔍 Troubleshooting
 
 ### Logs not appearing in terminal?
 
-1. Ensure server action is properly exported
-2. Check that Server Actions are enabled in `next.config.js`
-3. Verify environment variables are loaded
+1. Ensure API route is properly exported from `app/api/log-terminal/route.ts`
+2. Check that the API endpoint is accessible
+3. Verify environment variables are loaded correctly
 
 ### File paths showing as "Unknown"?
 
@@ -366,21 +369,22 @@ MIT © [Your Name]
 
 ### 使用方法
 ```bash
-# 開発
+# Development
 npm install
 npm run dev
 
-# テスト
-npm test          # Vitestユニットテスト
-npm run test:e2e  # PlaywrightのE2Eテスト
-npm run test:all  # すべてのテスト
+# Testing
+npm test                     # All tests (package + test-app)
+npm run project:test         # Package unit tests only
+npm run test-app:test:e2e    # E2E tests only
+npm run test-app:test        # Test-app tests only
 
-# ビルド
+# Building
 npm run build
 
-# テストアプリの起動
-npm run dev:test-app
+# Test app
+npm run test-app:dev
 
-# パッケージの公開
-npm publish
+# Publishing
+npm run publish-npm
 ```

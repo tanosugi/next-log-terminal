@@ -10,23 +10,34 @@ This is a Next.js logging package that unifies client and server logging through
 
 ```bash
 # Package development
-npm run dev              # Watch mode compilation with tsup
-npm run build           # Build the package
-npm run typecheck       # Type check with TypeScript
-npm run format          # Check code formatting with Biome
-npm run format:fix      # Fix code formatting issues
+npm run dev              # Watch mode compilation with tsup (alias for project:dev)
+npm run build           # Build the package (alias for project:build)
+npm run project:typecheck # Type check with TypeScript
+npm run format          # Check code formatting with Biome (alias for project:format)
+npm run format:fix      # Fix code formatting issues (alias for project:format:fix)
 
 # Testing
-npm test                # Run Vitest unit tests  
-npm run test:e2e        # Run Playwright E2E tests
-npm run test:all        # Run all tests
+npm test                # Run all tests (package + test-app)
+npm run project:test    # Run Vitest unit tests for package only
+npm run test-app:test:vitest # Run Vitest tests in test-app
+npm run test-app:test:e2e    # Run Playwright E2E tests in test-app
+npm run test-app:test        # Run all test-app tests
 
 # Test app (for development/testing)
-npm run dev:test-app    # Start test Next.js app on port 3000
-npm run build:test-app  # Build test app
+npm run test-app:dev    # Start test Next.js app on port 3000
+npm run test-app:build  # Build test app
+npm run test-app:start  # Start built test app
 
-# Cleanup
+# Setup and cleanup
+npm run npm-install     # Install dependencies for both package and test-app
 npm run clean           # Remove all node_modules and build artifacts
+npm run project:clean   # Clean only package build artifacts
+npm run test-app:clean  # Clean only test-app build artifacts
+
+# Publishing
+npm run prepublishOnly  # Automatically runs before publishing
+npm run publish-npm     # Publish to npm with public access
+npm run can-npm-publish # Check if package can be published
 ```
 
 ## Architecture
@@ -38,6 +49,7 @@ npm run clean           # Remove all node_modules and build artifacts
 - **`src/config.ts`**: Configuration management via environment variables
 - **`src/types.ts`**: TypeScript type definitions
 - **`src/index.ts`**: Package entry point with default logger instance
+- **`src/debug-utils.ts`**: Debug utilities for development and testing with log capture functionality
 
 ### Build System
 
@@ -55,8 +67,9 @@ npm run clean           # Remove all node_modules and build artifacts
 ### Test Structure
 
 - **Unit tests**: `tests/unit/` - Core functionality testing with Vitest
-- **E2E tests**: `tests/e2e/` - Full integration testing with Playwright
+- **E2E tests**: `test-app/tests/e2e/` - Full integration testing with Playwright
 - **Test app**: `test-app/` - Real Next.js application for testing package integration
+- **Debug utilities**: `src/debug-utils.ts` - Provides log capture functionality for testing
 
 ## Integration Pattern
 
