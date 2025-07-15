@@ -93,9 +93,31 @@ function shortenFilePath(filePath: string): string {
   return cleanPath;
 }
 
-// Removed createClickableFile function - browser file clicking is no longer supported
-
 const isServer = typeof window === 'undefined';
+
+function sanitizeArgs(args: any[]): any[] {
+  return args.map((arg) => {
+    if (typeof arg === 'function') {
+      return `[Function: ${arg.name || 'anonymous'}]`;
+    }
+    if (arg && typeof arg === 'object') {
+      try {
+        // Check if it's a function-like object by looking for common function properties
+        if (
+          typeof arg.toString === 'function' &&
+          typeof arg.valueOf === 'function' &&
+          typeof arg.call === 'function' &&
+          typeof arg.apply === 'function'
+        ) {
+          return `[Function: ${arg.name || 'anonymous'}]`;
+        }
+      } catch (_e) {
+        // If there's an error accessing properties, it's likely a complex object
+      }
+    }
+    return arg;
+  });
+}
 
 const logLevels = {
   error: 0,
@@ -137,6 +159,8 @@ export class UnifiedLogger {
           typeof window !== 'undefined' ? window.location.pathname : undefined,
       };
 
+      const sanitizedArgs = sanitizeArgs(args);
+
       const response = await fetch(this.config.apiEndpoint, {
         method: 'POST',
         headers: {
@@ -145,7 +169,7 @@ export class UnifiedLogger {
         body: JSON.stringify({
           level,
           message,
-          args,
+          args: sanitizedArgs,
           metadata,
         }),
       });
@@ -155,13 +179,15 @@ export class UnifiedLogger {
       }
     } catch (error) {
       console.error('Failed to send log to server:', error);
-      console[level](message, ...args);
+      const sanitizedArgs = sanitizeArgs(args);
+      console[level](message, ...sanitizedArgs);
     }
   }
 
   private formatServerLog(level: string, message: string, args: any[]): void {
     if (!this.shouldLog(level as keyof typeof logLevels)) return;
 
+    const sanitizedArgs = sanitizeArgs(args);
     const callerInfo = extractCallerInfo();
     const timestamp = this.getTimestamp();
 
@@ -210,7 +236,7 @@ export class UnifiedLogger {
       `${metaColor}${metaString}${resetColor}`,
       `\n${levelColor}→${resetColor}`,
       message,
-      ...args,
+      ...sanitizedArgs,
       '\n',
     );
   }
@@ -218,6 +244,7 @@ export class UnifiedLogger {
   private formatBrowserLog(level: string, message: string, args: any[]): void {
     if (!this.shouldLog(level as keyof typeof logLevels)) return;
 
+    const sanitizedArgs = sanitizeArgs(args);
     const callerInfo = extractCallerInfo();
     const timestamp = this.getTimestamp();
 
@@ -262,10 +289,10 @@ export class UnifiedLogger {
         `%c${metaString}%c → ${message}`,
         `color: #9ca3af; font-weight: bold;`,
         `color: ${levelColor}; font-weight: normal;`,
-        ...args,
+        ...sanitizedArgs,
       );
     } else {
-      consoleMethod(`${metaString} → ${message}`, ...args);
+      consoleMethod(`${metaString} → ${message}`, ...sanitizedArgs);
     }
   }
 
@@ -277,7 +304,8 @@ export class UnifiedLogger {
         if (this.config.showDetailInBrowser) {
           this.formatBrowserLog('log', message, args);
         } else {
-          console.log(message, ...args);
+          const sanitizedArgs = sanitizeArgs(args);
+          console.log(message, ...sanitizedArgs);
         }
         this.logToServer('log', message, args);
       }
@@ -292,7 +320,8 @@ export class UnifiedLogger {
         if (this.config.showDetailInBrowser) {
           this.formatBrowserLog('info', message, args);
         } else {
-          console.info(message, ...args);
+          const sanitizedArgs = sanitizeArgs(args);
+          console.info(message, ...sanitizedArgs);
         }
         this.logToServer('info', message, args);
       }
@@ -307,7 +336,8 @@ export class UnifiedLogger {
         if (this.config.showDetailInBrowser) {
           this.formatBrowserLog('warn', message, args);
         } else {
-          console.warn(message, ...args);
+          const sanitizedArgs = sanitizeArgs(args);
+          console.warn(message, ...sanitizedArgs);
         }
         this.logToServer('warn', message, args);
       }
@@ -322,7 +352,8 @@ export class UnifiedLogger {
         if (this.config.showDetailInBrowser) {
           this.formatBrowserLog('error', message, args);
         } else {
-          console.error(message, ...args);
+          const sanitizedArgs = sanitizeArgs(args);
+          console.error(message, ...sanitizedArgs);
         }
         this.logToServer('error', message, args);
       }
@@ -339,11 +370,12 @@ export class UnifiedLogger {
         if (this.config.showDetailInBrowser) {
           this.formatBrowserLog('log', `[DEBUG] ${message}`, args);
         } else {
+          const sanitizedArgs = sanitizeArgs(args);
           console.log(
             `%c[DEBUG]%c ${message}`,
             'color: #6b7280; font-weight: bold;',
             'color: inherit;',
-            ...args,
+            ...sanitizedArgs,
           );
         }
         this.logToServer('log', debugMessage, args);
