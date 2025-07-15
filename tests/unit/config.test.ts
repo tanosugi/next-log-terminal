@@ -12,7 +12,6 @@ describe('Logger Configuration', () => {
     delete process.env.NEXT_PUBLIC_LOG_LEVEL;
     delete process.env.NEXT_PUBLIC_LOG_API_ENDPOINT;
     delete process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER;
-    delete process.env.NEXT_PUBLIC_LOG_ENABLE_FILE_CLICK;
   });
 
   it('should return default configuration when no env vars set', () => {
@@ -25,7 +24,6 @@ describe('Logger Configuration', () => {
       logLevel: 'log',
       apiEndpoint: '/api/log-terminal',
       showDetailInBrowser: true,
-      enableFileClick: true,
     });
   });
 
@@ -34,14 +32,12 @@ describe('Logger Configuration', () => {
     process.env.NEXT_PUBLIC_LOG_LEVEL = 'error';
     process.env.NEXT_PUBLIC_LOG_API_ENDPOINT = '/api/custom-log';
     process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER = 'false';
-    process.env.NEXT_PUBLIC_LOG_ENABLE_FILE_CLICK = 'false';
 
     const config = getLoggerConfig();
     expect(config.showTimestamp).toBe(false);
     expect(config.logLevel).toBe('error');
     expect(config.apiEndpoint).toBe('/api/custom-log');
     expect(config.showDetailInBrowser).toBe(false);
-    expect(config.enableFileClick).toBe(false);
     expect(config.showFileName).toBe(true); // Should keep default value
     expect(config.useColors).toBe(true); // Should keep default value
   });

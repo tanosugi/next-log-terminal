@@ -6,7 +6,6 @@ export interface LoggerConfig {
   logLevel: 'error' | 'warn' | 'info' | 'log' | 'debug';
   apiEndpoint: string;
   showDetailInBrowser: boolean;
-  enableFileClick: boolean;
 }
 
 export interface LogMetadata {

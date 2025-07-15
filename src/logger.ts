@@ -93,40 +93,6 @@ function shortenFilePath(filePath: string): string {
   return cleanPath;
 }
 
-function getAbsolutePath(relativePath: string): string {
-  if (typeof process !== 'undefined' && process.cwd) {
-    const path = require('node:path');
-    return path.resolve(process.cwd(), relativePath);
-  }
-  return relativePath;
-}
-
-function getEditorProtocolUrl(
-  editor: string,
-  filePath: string,
-  lineNumber: number,
-): string {
-  const absolutePath = getAbsolutePath(filePath);
-
-  switch (editor.toLowerCase()) {
-    case 'code':
-    case 'vscode':
-      return `vscode://file/${absolutePath}:${lineNumber}`;
-    case 'cursor':
-      return `cursor://file/${absolutePath}:${lineNumber}`;
-    case 'webstorm':
-    case 'idea':
-      return `webstorm://open?file=${absolutePath}&line=${lineNumber}`;
-    case 'sublime':
-    case 'subl':
-      return `sublime://open?file=${absolutePath}&line=${lineNumber}`;
-    case 'atom':
-      return `atom://open?file=${absolutePath}&line=${lineNumber}`;
-    default:
-      return `vscode://file/${absolutePath}:${lineNumber}`;
-  }
-}
-
 // Removed createClickableFile function - browser file clicking is no longer supported
 
 const isServer = typeof window === 'undefined';
@@ -240,28 +206,11 @@ export class UnifiedLogger {
       ...args: any[]
     ) => void;
 
-    // Add clickable editor protocol link if enabled
-    let editorLink = '';
-    if (
-      this.config.enableFileClick &&
-      callerInfo.fullPath &&
-      callerInfo.lineNumber
-    ) {
-      const reactEditor = process.env.REACT_EDITOR || 'code';
-      const protocolUrl = getEditorProtocolUrl(
-        reactEditor,
-        callerInfo.fullPath,
-        callerInfo.lineNumber,
-      );
-      editorLink = `\n${metaColor}📁 ${protocolUrl}${resetColor}`;
-    }
-
     consoleMethod(
       `${metaColor}${metaString}${resetColor}`,
       `\n${levelColor}→${resetColor}`,
       message,
       ...args,
-      editorLink,
       '\n',
     );
   }

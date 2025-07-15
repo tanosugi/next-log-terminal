@@ -1,40 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { captureLog } from './debug-utils';
 
-function getAbsolutePath(relativePath: string): string {
-  if (typeof process !== 'undefined' && process.cwd) {
-    const path = require('node:path');
-    return path.resolve(process.cwd(), relativePath);
-  }
-  return relativePath;
-}
-
-function getEditorProtocolUrl(
-  editor: string,
-  filePath: string,
-  lineNumber: number,
-): string {
-  const absolutePath = getAbsolutePath(filePath);
-
-  switch (editor.toLowerCase()) {
-    case 'code':
-    case 'vscode':
-      return `vscode://file/${absolutePath}:${lineNumber}`;
-    case 'cursor':
-      return `cursor://file/${absolutePath}:${lineNumber}`;
-    case 'webstorm':
-    case 'idea':
-      return `webstorm://open?file=${absolutePath}&line=${lineNumber}`;
-    case 'sublime':
-    case 'subl':
-      return `sublime://open?file=${absolutePath}&line=${lineNumber}`;
-    case 'atom':
-      return `atom://open?file=${absolutePath}&line=${lineNumber}`;
-    default:
-      return `vscode://file/${absolutePath}:${lineNumber}`;
-  }
-}
-
 interface LogRequest {
   level: 'log' | 'info' | 'warn' | 'error';
   message: string;
@@ -80,8 +46,6 @@ export async function POST(request: NextRequest) {
       showFileName: process.env.NEXT_PUBLIC_LOG_FILENAME !== 'false',
       showLineNumber: process.env.NEXT_PUBLIC_LOG_LINENUMBER !== 'false',
       useColors: process.env.NEXT_PUBLIC_LOG_COLORS !== 'false',
-      enableFileClick:
-        process.env.NEXT_PUBLIC_LOG_ENABLE_FILE_CLICK !== 'false',
     };
 
     const levelColor = config.useColors ? colors[logData.level] : '';
@@ -109,28 +73,11 @@ export async function POST(request: NextRequest) {
 
     const metaString = metaParts.join(' ');
 
-    // Add clickable editor protocol link if enabled
-    let editorLink = '';
-    if (
-      config.enableFileClick &&
-      logData.metadata.fullPath &&
-      logData.metadata.lineNumber
-    ) {
-      const reactEditor = process.env.REACT_EDITOR || 'code';
-      const protocolUrl = getEditorProtocolUrl(
-        reactEditor,
-        logData.metadata.fullPath,
-        logData.metadata.lineNumber,
-      );
-      editorLink = `\n${metaColor}📁 ${protocolUrl}${resetColor}`;
-    }
-
     console[logData.level](
       `${metaColor}${metaString}${resetColor}`,
       `\n${levelColor}→${resetColor}`,
       logData.message,
       ...logData.args,
-      editorLink,
       '\n',
     );
 
