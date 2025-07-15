@@ -63,6 +63,8 @@ npm run can-npm-publish # Check if package can be published
 - **Environment detection**: Differentiates between client and server contexts
 - **API transport**: Uses fetch API to send client logs to API Route endpoint
 - **Configurable output**: Environment variables control timestamp, colors, log levels, API endpoint, etc.
+- **Function sanitization**: Automatically converts function objects to readable `[Function: name]` format to prevent ugly object representations
+- **Browser detail control**: `showDetailInBrowser` option controls whether detailed formatting is shown in browser console
 
 ### Test Structure
 
@@ -92,3 +94,17 @@ logger.info('Message from client or server');
 - Fallback to console methods if API logging fails
 - Environment variables prefixed with `NEXT_PUBLIC_LOG_` for configuration
 - API endpoint URL configurable via `NEXT_PUBLIC_LOG_API_ENDPOINT`
+- Function objects are automatically sanitized to prevent ugly `{toString: ƒ, valueOf: ƒ}` display
+- Browser detail display controlled by `NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER` environment variable
+
+## Configuration Environment Variables
+
+All configuration is done via environment variables prefixed with `NEXT_PUBLIC_LOG_`:
+
+- `NEXT_PUBLIC_LOG_TIMESTAMP`: Show timestamps (default: `true`)
+- `NEXT_PUBLIC_LOG_FILENAME`: Show file names (default: `true`) 
+- `NEXT_PUBLIC_LOG_LINENUMBER`: Show line numbers (default: `true`)
+- `NEXT_PUBLIC_LOG_COLORS`: Use colors in output (default: `true`)
+- `NEXT_PUBLIC_LOG_LEVEL`: Minimum log level - `error`, `warn`, `info`, `log`, `debug` (default: `log`)
+- `NEXT_PUBLIC_LOG_API_ENDPOINT`: API endpoint for client logs (default: `/api/log-terminal`)
+- `NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER`: Show detailed formatting in browser console (default: `true`)

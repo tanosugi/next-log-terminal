@@ -28,6 +28,7 @@
 - 🔧 **Fully Configurable**: Customize output format via environment variables
 - 📦 **Lightweight**: Minimal impact on bundle size
 - 🔍 **Stack Traces**: Automatic file name and line number detection
+- 🛡️ **Function Sanitization**: Automatically handles function objects to prevent ugly display
 - 🎯 **TypeScript**: Full type safety and IntelliSense support
 
 ## 📸 Screenshot
@@ -133,29 +134,36 @@ export async function GET(request: Request) {
 
 ## ⚙️ Configuration
 
-Configure the logger in your `next.config.js` file:
+Configure the logger using environment variables in your `next.config.js`:
 
 ```javascript
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => {
-    config.plugins.push(
-      new config.webpack.DefinePlugin({
-        '__NEXT_LOGGER_CONFIG__': JSON.stringify({
-          showTimestamp: true,
-          showFileName: true,
-          showLineNumber: true,
-          useColors: true,
-          logLevel: 'debug',
-          apiEndpoint: '/api/log-terminal'
-        })
-      })
-    );
-    return config;
-  }
+  env: {
+    NEXT_PUBLIC_LOG_TIMESTAMP: 'true',        // Show timestamps
+    NEXT_PUBLIC_LOG_FILENAME: 'true',         // Show file names
+    NEXT_PUBLIC_LOG_LINENUMBER: 'true',       // Show line numbers
+    NEXT_PUBLIC_LOG_COLORS: 'true',           // Use colors
+    NEXT_PUBLIC_LOG_LEVEL: 'debug',           // Log level
+    NEXT_PUBLIC_LOG_API_ENDPOINT: '/api/log-terminal',    // API endpoint
+    NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER: 'true',  // Detailed browser formatting
+  },
 };
 
 export default nextConfig;
+```
+
+Or set them as environment variables:
+
+```bash
+# .env.local
+NEXT_PUBLIC_LOG_TIMESTAMP=true
+NEXT_PUBLIC_LOG_FILENAME=true
+NEXT_PUBLIC_LOG_LINENUMBER=true
+NEXT_PUBLIC_LOG_COLORS=true
+NEXT_PUBLIC_LOG_LEVEL=debug
+NEXT_PUBLIC_LOG_API_ENDPOINT=/api/log-terminal
+NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER=true
 ```
 
 ## 📚 API Reference
@@ -188,8 +196,22 @@ interface LoggerConfig {
   showLineNumber: boolean;     // Display line number
   useColors: boolean;          // Use ANSI colors
   logLevel: 'error' | 'warn' | 'info' | 'log' | 'debug';
+  apiEndpoint: string;         // API endpoint for client logs
+  showDetailInBrowser: boolean; // Show detailed formatting in browser console
 }
 ```
+
+All options can be configured via environment variables:
+
+| Environment Variable | Type | Default | Description |
+|---------------------|------|---------|-------------|
+| `NEXT_PUBLIC_LOG_TIMESTAMP` | boolean | `true` | Show timestamps in logs |
+| `NEXT_PUBLIC_LOG_FILENAME` | boolean | `true` | Show file names in logs |
+| `NEXT_PUBLIC_LOG_LINENUMBER` | boolean | `true` | Show line numbers in logs |
+| `NEXT_PUBLIC_LOG_COLORS` | boolean | `true` | Use ANSI colors in terminal output |
+| `NEXT_PUBLIC_LOG_LEVEL` | string | `log` | Minimum log level (`error`, `warn`, `info`, `log`, `debug`) |
+| `NEXT_PUBLIC_LOG_API_ENDPOINT` | string | `/api/log-terminal` | API endpoint for client-to-server logging |
+| `NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER` | boolean | `true` | Show detailed formatting in browser console |
 
 ## 🎨 Output Format
 
@@ -273,6 +295,27 @@ async function fetchWithLogging(url: string) {
 ```
 
 ## 🔧 Advanced Usage
+
+### Function Object Handling
+
+The logger automatically sanitizes function objects to prevent ugly console output:
+
+```typescript
+import { logger } from 'next-log-terminal';
+
+const myFunction = () => console.log('hello');
+const serverAction = async () => { /* server action */ };
+
+// Instead of displaying {toString: ƒ, valueOf: ƒ, call: ƒ, apply: ƒ}
+// The logger shows: [Function: myFunction] and [Function: serverAction]
+logger.info('Functions:', myFunction, serverAction);
+
+// Output in terminal:
+// [14:25:37.123] [CLIENT/INFO] app/components/MyComponent.tsx:12:5
+// → Functions: [Function: myFunction] [Function: serverAction]
+```
+
+This prevents the confusing function object representations that can clutter your logs.
 
 ### Custom Logger Instance
 
