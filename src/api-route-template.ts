@@ -83,20 +83,22 @@ export async function POST(request: NextRequest) {
 
     // Send to test logs if available (for testing purposes)
     try {
-      const testLogsUrl = new URL('/api/test-logs', request.url);
-      await fetch(testLogsUrl.toString(), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'add',
-          logData: {
-            level: logData.level,
-            message: logData.message,
-            args: logData.args,
-            metadata: logData.metadata,
-          },
-        }),
-      });
+      if (process.env.NEXT_PUBLIC_TEST_LOG === "true") {
+        const testLogsUrl = new URL('/api/test-logs', request.url);
+        await fetch(testLogsUrl.toString(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'add',
+            logData: {
+              level: logData.level,
+              message: logData.message,
+              args: logData.args,
+              metadata: logData.metadata,
+            },
+          }),
+        });
+      }
     } catch (_error) {
       // Ignore test logs errors in production
     }
