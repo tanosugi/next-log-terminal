@@ -1,6 +1,6 @@
 {
   "name": "next-log-terminal",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "See all your Next.js logs in the terminal - browser, server, everywhere",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
