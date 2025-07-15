@@ -39,6 +39,7 @@
     "test-app:clean": "cd test-app && rm -rf node_modules .next package-lock.json",
     "test": "npm run project:test && npm run test-app:test",
     "clean": "npm run project:clean && npm run test-app:clean",
+    "clean-setup": "npm run clean && npm install && npm run build && npm run test-app:npm-install",
     "build": "npm run project:build",
     "dev": "npm run project:dev",
     "format": "npm run project:format",

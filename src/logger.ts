@@ -7,6 +7,7 @@ function extractCallerInfo(): {
   fileName?: string;
   lineNumber?: number;
   columnNumber?: number;
+  fullPath?: string;
 } {
   const error = new Error();
   const stack = error.stack || '';
@@ -44,25 +45,89 @@ function extractCallerInfo(): {
     }
 
     let fileName = filePath;
+    let fullPath = filePath;
+
     if (filePath.includes('webpack-internal:')) {
       const appMatch = filePath.match(/\/\.\/(app\/.+)$/);
       if (appMatch) {
         fileName = appMatch[1];
+        fullPath = appMatch[1];
       }
     } else if (filePath.includes('http://') || filePath.includes('https://')) {
       const urlMatch = filePath.match(/\/([^/]+)$/);
       fileName = urlMatch ? urlMatch[1] : filePath;
+    } else {
+      // Clean up file path for display
+      fileName = shortenFilePath(filePath);
     }
 
     return {
       fileName,
       lineNumber: parseInt(lineNumber, 10),
       columnNumber: parseInt(columnNumber, 10),
+      fullPath,
     };
   }
 
   return {};
 }
+
+function shortenFilePath(filePath: string): string {
+  // Remove common prefixes and show relative path
+  const cleanPath = filePath
+    .replace(/^.*\/node_modules\//, '')
+    .replace(/^.*\/\.next\//, '')
+    .replace(/^.*\/src\//, 'src/')
+    .replace(/^.*\/app\//, 'app/')
+    .replace(/^.*\/pages\//, 'pages/')
+    .replace(/^.*\/components\//, 'components/')
+    .replace(/^.*\/lib\//, 'lib/')
+    .replace(/^.*\/utils\//, 'utils/');
+
+  // If still too long, show just the filename
+  if (cleanPath.length > 50) {
+    const parts = cleanPath.split('/');
+    return parts[parts.length - 1];
+  }
+
+  return cleanPath;
+}
+
+function getAbsolutePath(relativePath: string): string {
+  if (typeof process !== 'undefined' && process.cwd) {
+    const path = require('node:path');
+    return path.resolve(process.cwd(), relativePath);
+  }
+  return relativePath;
+}
+
+function getEditorProtocolUrl(
+  editor: string,
+  filePath: string,
+  lineNumber: number,
+): string {
+  const absolutePath = getAbsolutePath(filePath);
+
+  switch (editor.toLowerCase()) {
+    case 'code':
+    case 'vscode':
+      return `vscode://file/${absolutePath}:${lineNumber}`;
+    case 'cursor':
+      return `cursor://file/${absolutePath}:${lineNumber}`;
+    case 'webstorm':
+    case 'idea':
+      return `webstorm://open?file=${absolutePath}&line=${lineNumber}`;
+    case 'sublime':
+    case 'subl':
+      return `sublime://open?file=${absolutePath}&line=${lineNumber}`;
+    case 'atom':
+      return `atom://open?file=${absolutePath}&line=${lineNumber}`;
+    default:
+      return `vscode://file/${absolutePath}:${lineNumber}`;
+  }
+}
+
+// Removed createClickableFile function - browser file clicking is no longer supported
 
 const isServer = typeof window === 'undefined';
 
@@ -174,13 +239,85 @@ export class UnifiedLogger {
     const consoleMethod = console[level as keyof Console] as (
       ...args: any[]
     ) => void;
+
+    // Add clickable editor protocol link if enabled
+    let editorLink = '';
+    if (
+      this.config.enableFileClick &&
+      callerInfo.fullPath &&
+      callerInfo.lineNumber
+    ) {
+      const reactEditor = process.env.REACT_EDITOR || 'code';
+      const protocolUrl = getEditorProtocolUrl(
+        reactEditor,
+        callerInfo.fullPath,
+        callerInfo.lineNumber,
+      );
+      editorLink = `\n${metaColor}📁 ${protocolUrl}${resetColor}`;
+    }
+
     consoleMethod(
       `${metaColor}${metaString}${resetColor}`,
       `\n${levelColor}→${resetColor}`,
       message,
       ...args,
+      editorLink,
       '\n',
     );
+  }
+
+  private formatBrowserLog(level: string, message: string, args: any[]): void {
+    if (!this.shouldLog(level as keyof typeof logLevels)) return;
+
+    const callerInfo = extractCallerInfo();
+    const timestamp = this.getTimestamp();
+
+    const colors = {
+      log: '#6b7280',
+      info: '#3b82f6',
+      warn: '#f59e0b',
+      error: '#ef4444',
+    };
+
+    const levelColor = this.config.useColors
+      ? colors[level as keyof typeof colors] || colors.log
+      : '#6b7280';
+
+    const metaParts = [];
+
+    if (this.config.showTimestamp) {
+      metaParts.push(`[${timestamp}]`);
+    }
+
+    metaParts.push(`[CLIENT/${level.toUpperCase()}]`);
+
+    if (this.config.showFileName && callerInfo.fileName) {
+      let filePart = callerInfo.fileName;
+      if (this.config.showLineNumber && callerInfo.lineNumber) {
+        filePart += `:${callerInfo.lineNumber}`;
+        if (callerInfo.columnNumber) {
+          filePart += `:${callerInfo.columnNumber}`;
+        }
+      }
+      metaParts.push(filePart);
+    }
+
+    const metaString = metaParts.join(' ');
+
+    const consoleMethod = console[level as keyof Console] as (
+      ...args: any[]
+    ) => void;
+
+    if (this.config.useColors) {
+      consoleMethod(
+        `%c${metaString}%c → ${message}`,
+        `color: #9ca3af; font-weight: bold;`,
+        `color: ${levelColor}; font-weight: normal;`,
+        ...args,
+      );
+    } else {
+      consoleMethod(`${metaString} → ${message}`, ...args);
+    }
   }
 
   log(message: string, ...args: any[]) {
@@ -188,7 +325,11 @@ export class UnifiedLogger {
       this.formatServerLog('log', message, args);
     } else {
       if (this.shouldLog('log')) {
-        console.log(message, ...args);
+        if (this.config.showDetailInBrowser) {
+          this.formatBrowserLog('log', message, args);
+        } else {
+          console.log(message, ...args);
+        }
         this.logToServer('log', message, args);
       }
     }
@@ -199,7 +340,11 @@ export class UnifiedLogger {
       this.formatServerLog('info', message, args);
     } else {
       if (this.shouldLog('info')) {
-        console.info(message, ...args);
+        if (this.config.showDetailInBrowser) {
+          this.formatBrowserLog('info', message, args);
+        } else {
+          console.info(message, ...args);
+        }
         this.logToServer('info', message, args);
       }
     }
@@ -210,7 +355,11 @@ export class UnifiedLogger {
       this.formatServerLog('warn', message, args);
     } else {
       if (this.shouldLog('warn')) {
-        console.warn(message, ...args);
+        if (this.config.showDetailInBrowser) {
+          this.formatBrowserLog('warn', message, args);
+        } else {
+          console.warn(message, ...args);
+        }
         this.logToServer('warn', message, args);
       }
     }
@@ -221,7 +370,11 @@ export class UnifiedLogger {
       this.formatServerLog('error', message, args);
     } else {
       if (this.shouldLog('error')) {
-        console.error(message, ...args);
+        if (this.config.showDetailInBrowser) {
+          this.formatBrowserLog('error', message, args);
+        } else {
+          console.error(message, ...args);
+        }
         this.logToServer('error', message, args);
       }
     }
@@ -234,12 +387,16 @@ export class UnifiedLogger {
       if (isServer) {
         this.formatServerLog('log', debugMessage, args);
       } else {
-        console.log(
-          `%c[DEBUG]%c ${message}`,
-          'color: #6b7280; font-weight: bold;',
-          'color: inherit;',
-          ...args,
-        );
+        if (this.config.showDetailInBrowser) {
+          this.formatBrowserLog('log', `[DEBUG] ${message}`, args);
+        } else {
+          console.log(
+            `%c[DEBUG]%c ${message}`,
+            'color: #6b7280; font-weight: bold;',
+            'color: inherit;',
+            ...args,
+          );
+        }
         this.logToServer('log', debugMessage, args);
       }
     }

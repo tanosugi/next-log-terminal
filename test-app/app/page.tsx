@@ -1,5 +1,6 @@
 import { logger } from 'next-log-terminal';
 import Button from './components/Button';
+import EnvironmentVariables from './components/EnvironmentVariables';
 import ErrorBoundary from './components/ErrorBoundary';
 import UserList from './components/UserList';
 
@@ -43,16 +44,26 @@ export default async function Home() {
           </p>
         </div>
 
+        <EnvironmentVariables />
+
         <div className="mt-8 p-6 bg-gray-100 rounded-lg">
           <h2 className="text-xl font-semibold mb-4">Debug Tools</h2>
-          <a
-            href="/debug-logs"
-            className="inline-block px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
-          >
-            Debug Logs Dashboard
-          </a>
+          <div className="space-x-2">
+            <a
+              href="/debug-logs"
+              className="inline-block px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors"
+            >
+              Debug Logs Dashboard
+            </a>
+            <a
+              href="/debug-browser-logging"
+              className="inline-block px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
+            >
+              Browser Logging Debug
+            </a>
+          </div>
           <p className="text-sm text-gray-600 mt-2">
-            View real-time server logs and debug the logging system.
+            View real-time server logs and debug the browser logging system.
           </p>
         </div>
       </div>

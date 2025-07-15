@@ -7,6 +7,8 @@ const nextConfig = {
     NEXT_PUBLIC_LOG_COLORS: 'true',
     NEXT_PUBLIC_LOG_LEVEL: 'debug',
     NEXT_PUBLIC_LOG_API_ENDPOINT: '/api/log-terminal',
+    NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER: 'true',
+    NEXT_PUBLIC_LOG_ENABLE_FILE_CLICK: 'true',
   },
 };
 

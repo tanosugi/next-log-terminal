@@ -10,5 +10,8 @@ export function getLoggerConfig(): LoggerConfig {
       (process.env.NEXT_PUBLIC_LOG_LEVEL as LoggerConfig['logLevel']) || 'log',
     apiEndpoint:
       process.env.NEXT_PUBLIC_LOG_API_ENDPOINT || '/api/log-terminal',
+    showDetailInBrowser:
+      process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER !== 'false',
+    enableFileClick: process.env.NEXT_PUBLIC_LOG_ENABLE_FILE_CLICK !== 'false',
   };
 }

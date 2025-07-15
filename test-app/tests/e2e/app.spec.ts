@@ -132,6 +132,8 @@ test.describe('next-log-terminal Demo App E2E', () => {
   test('should log "Button clicked" when Click me button is clicked', async ({
     page,
   }) => {
+    const capturedLogs: any[] = [];
+
     // Mock API endpoint to capture requests
     await page.route('/api/log-terminal', async (route) => {
       const request = route.request();
@@ -140,18 +142,7 @@ test.describe('next-log-terminal Demo App E2E', () => {
       // Store request for verification
       if (postData) {
         const requestData = JSON.parse(postData);
-        // Store in test logs for verification
-        await page.request.post('/api/test-logs', {
-          data: {
-            action: 'add',
-            logData: {
-              level: requestData.level,
-              message: requestData.message,
-              args: requestData.args,
-              metadata: requestData.metadata,
-            },
-          },
-        });
+        capturedLogs.push(requestData);
       }
 
       // Respond with success
@@ -160,11 +151,6 @@ test.describe('next-log-terminal Demo App E2E', () => {
         contentType: 'application/json',
         body: JSON.stringify({ success: true }),
       });
-    });
-
-    // Start server log capture
-    await page.request.post('/api/test-logs', {
-      data: { action: 'start' },
     });
 
     await page.goto('/');
@@ -179,20 +165,11 @@ test.describe('next-log-terminal Demo App E2E', () => {
     // Wait for API call to complete
     await page.waitForTimeout(1000);
 
-    // Get captured server logs
-    const logsResponse = await page.request.get('/api/test-logs');
-    const logsData = await logsResponse.json();
-
-    // Stop log capture
-    await page.request.post('/api/test-logs', {
-      data: { action: 'stop' },
-    });
-
     // Verify logs were captured
-    expect(logsData.logs.length).toBeGreaterThan(0);
+    expect(capturedLogs.length).toBeGreaterThan(0);
 
     // Find the "Button clicked" log
-    const buttonClickedLog = logsData.logs.find((log: any) =>
+    const buttonClickedLog = capturedLogs.find((log: any) =>
       log.message?.includes('Button clicked'),
     );
 

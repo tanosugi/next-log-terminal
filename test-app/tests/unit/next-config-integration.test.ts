@@ -31,6 +31,7 @@ describe('Next.js Config Integration', () => {
     delete process.env.NEXT_PUBLIC_LOG_COLORS;
     delete process.env.NEXT_PUBLIC_LOG_LEVEL;
     delete process.env.NEXT_PUBLIC_LOG_API_ENDPOINT;
+    delete process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER;
   });
 
   afterEach(() => {
@@ -57,6 +58,7 @@ describe('Next.js Config Integration', () => {
       expect(config.useColors).toBe(false);
       expect(config.logLevel).toBe('debug');
       expect(config.apiEndpoint).toBe('/api/log-terminal');
+      expect(config.showDetailInBrowser).toBe(true); // Default when not set
     });
 
     it('should handle partial environment variable configuration', () => {
@@ -72,6 +74,7 @@ describe('Next.js Config Integration', () => {
       expect(config.showFileName).toBe(true); // Default value
       expect(config.showLineNumber).toBe(true); // Default value
       expect(config.apiEndpoint).toBe('/api/log-terminal'); // Default value
+      expect(config.showDetailInBrowser).toBe(true); // Default value
     });
 
     it('should fall back to defaults when env vars not set', () => {
@@ -127,6 +130,7 @@ describe('Next.js Config Integration', () => {
 
     it('should enable debug logging when logLevel is set to debug via env', async () => {
       process.env.NEXT_PUBLIC_LOG_LEVEL = 'debug';
+      process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER = 'false'; // Disable detailed format for this test
 
       const { UnifiedLogger } = await import('../../../src/logger');
       const testLogger = new UnifiedLogger();
@@ -142,6 +146,7 @@ describe('Next.js Config Integration', () => {
 
     it('should respect log level filtering from environment variables', async () => {
       process.env.NEXT_PUBLIC_LOG_LEVEL = 'error';
+      process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER = 'false'; // Disable detailed format for this test
 
       const { UnifiedLogger } = await import('../../../src/logger');
       const testLogger = new UnifiedLogger();
@@ -208,6 +213,68 @@ describe('Next.js Config Integration', () => {
       expect(config.showTimestamp).toBe(false);
       expect(config.showFileName).toBe(false);
       expect(config.showLineNumber).toBe(false);
+    });
+
+    it('should handle showDetailInBrowser environment variable', () => {
+      // Test enabled state
+      process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER = 'true';
+
+      const configEnabled = getLoggerConfig();
+      expect(configEnabled.showDetailInBrowser).toBe(true);
+
+      // Test disabled state
+      process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER = 'false';
+
+      const configDisabled = getLoggerConfig();
+      expect(configDisabled.showDetailInBrowser).toBe(false);
+    });
+
+    it('should default showDetailInBrowser to true when env var not set', () => {
+      // Clear the environment variable
+      delete process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER;
+
+      const config = getLoggerConfig();
+      expect(config.showDetailInBrowser).toBe(true);
+    });
+
+    it('should show detailed browser logging when showDetailInBrowser is enabled', async () => {
+      process.env.NEXT_PUBLIC_LOG_DETAIL_IN_BROWSER = 'true';
+      process.env.NEXT_PUBLIC_LOG_LEVEL = 'debug';
+
+      const { UnifiedLogger } = await import('../../../src/logger');
+      const testLogger = new UnifiedLogger();
+
+      // Clear mocks to test detailed format
+      vi.clearAllMocks();
+
+      testLogger.info('Test info message');
+      testLogger.error('Test error message');
+      testLogger.debug('Test debug message');
+
+      // Verify detailed format is used (contains timestamp, CLIENT marker, and file info)
+      expect(console.info).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /%c\[[\d:.]+\] \[CLIENT\/INFO\].*%c → Test info message/,
+        ),
+        'color: #9ca3af; font-weight: bold;',
+        'color: #3b82f6; font-weight: normal;',
+      );
+
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /%c\[[\d:.]+\] \[CLIENT\/ERROR\].*%c → Test error message/,
+        ),
+        'color: #9ca3af; font-weight: bold;',
+        'color: #ef4444; font-weight: normal;',
+      );
+
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /%c\[[\d:.]+\] \[CLIENT\/LOG\].*%c → \[DEBUG\] Test debug message/,
+        ),
+        'color: #9ca3af; font-weight: bold;',
+        'color: #6b7280; font-weight: normal;',
+      );
     });
   });
 });
