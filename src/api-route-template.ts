@@ -83,7 +83,14 @@ export async function POST(request: NextRequest) {
 
     // Send to test logs if available (for testing purposes)
     try {
-      if (process.env.NEXT_PUBLIC_TEST_LOG === "true") {
+      const testLogEnabled = process.env.NEXT_PUBLIC_TEST_LOG;
+      
+      // Debug: Log environment variable value for troubleshooting
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[DEBUG] NEXT_PUBLIC_TEST_LOG value: "${testLogEnabled}"`);
+      }
+      
+      if (testLogEnabled === "true") {
         const testLogsUrl = new URL('/api/test-logs', request.url);
         await fetch(testLogsUrl.toString(), {
           method: 'POST',
@@ -98,9 +105,16 @@ export async function POST(request: NextRequest) {
             },
           }),
         });
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[DEBUG] Test log sent to /api/test-logs');
+        }
       }
     } catch (_error) {
       // Ignore test logs errors in production
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[DEBUG] Test log sending failed:', _error);
+      }
     }
 
     return NextResponse.json({ success: true });
