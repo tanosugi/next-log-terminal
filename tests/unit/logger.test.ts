@@ -32,31 +32,18 @@ describe('UnifiedLogger', () => {
   });
 
   describe('Log levels', () => {
-    it('should respect log level settings', () => {
-      logger.updateConfig({ logLevel: 'warn' });
-
+    it('should log with default configuration', () => {
       logger.debug('Debug message');
       logger.log('Log message');
       logger.info('Info message');
-      expect(console.log).not.toHaveBeenCalled();
-      expect(console.info).not.toHaveBeenCalled();
-
       logger.warn('Warning message');
       logger.error('Error message');
+
+      // With default configuration, all logging methods should work
+      expect(console.log).toHaveBeenCalled();
+      expect(console.info).toHaveBeenCalled();
       expect(console.warn).toHaveBeenCalled();
       expect(console.error).toHaveBeenCalled();
-    });
-  });
-
-  describe('Configuration', () => {
-    it('should update configuration', () => {
-      logger.updateConfig({
-        showTimestamp: false,
-        showFileName: false,
-      });
-
-      logger.log('Test message');
-      expect(console.log).toHaveBeenCalled();
     });
   });
 });

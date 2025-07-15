@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "pmcp": {
+      "command": "bunx",
+      "args": ["@playwright/mcp@latest --config playwright.config.ts"]
+    },
+    "cmcp": {
+      "command": "bunx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  }
+}

@@ -133,34 +133,29 @@ export async function GET(request: Request) {
 
 ## ⚙️ Configuration
 
-Configure via environment variables in `.env.local`:
+Configure the logger in your `next.config.js` file:
 
-```bash
-# Display options
-NEXT_PUBLIC_LOG_TIMESTAMP=true      # Show timestamps (default: true)
-NEXT_PUBLIC_LOG_FILENAME=true       # Show file names (default: true)
-NEXT_PUBLIC_LOG_LINENUMBER=true     # Show line numbers (default: true)
-NEXT_PUBLIC_LOG_FUNCTION=false      # Show function names (default: false)
-NEXT_PUBLIC_LOG_COLORS=true         # Enable colors (default: true)
+```javascript
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  webpack: (config) => {
+    config.plugins.push(
+      new config.webpack.DefinePlugin({
+        '__NEXT_LOGGER_CONFIG__': JSON.stringify({
+          showTimestamp: true,
+          showFileName: true,
+          showLineNumber: true,
+          useColors: true,
+          logLevel: 'debug',
+          apiEndpoint: '/api/log-terminal'
+        })
+      })
+    );
+    return config;
+  }
+};
 
-# Log level
-NEXT_PUBLIC_LOG_LEVEL=debug         # error | warn | info | log | debug (default: log)
-
-# API endpoint (for client logs)
-NEXT_PUBLIC_LOG_API_ENDPOINT=/api/log-terminal  # API endpoint URL (default: /api/log-terminal)
-```
-
-### Programmatic Configuration
-
-```typescript
-import { logger } from 'next-log-terminal';
-
-// Update configuration at runtime
-logger.updateConfig({
-  showTimestamp: false,
-  showFileName: false,
-  logLevel: 'warn',
-});
+export default nextConfig;
 ```
 
 ## 📚 API Reference
@@ -191,7 +186,6 @@ interface LoggerConfig {
   showTimestamp: boolean;      // Display timestamp
   showFileName: boolean;       // Display file name
   showLineNumber: boolean;     // Display line number
-  showFunctionName: boolean;   // Display function name
   useColors: boolean;          // Use ANSI colors
   logLevel: 'error' | 'warn' | 'info' | 'log' | 'debug';
 }
@@ -201,7 +195,7 @@ interface LoggerConfig {
 
 ### Default Format
 ```
-[HH:MM:SS.mmm] [ENVIRONMENT/LEVEL] path/to/file.ts:line:column in functionName()
+[HH:MM:SS.mmm] [ENVIRONMENT/LEVEL] path/to/file.ts:line:column
 → Your log message
 ```
 
@@ -209,15 +203,15 @@ interface LoggerConfig {
 
 ```bash
 # Client-side log
-[14:25:37.123] [CLIENT/INFO] app/components/Header.tsx:15:5 in Header()
+[14:25:37.123] [CLIENT/INFO] app/components/Header.tsx:15:5
 → Navigation menu opened
 
 # Server-side log
-[14:25:37.256] [SERVER/WARN] app/lib/auth.ts:42:10 in validateSession()
+[14:25:37.256] [SERVER/WARN] app/lib/auth.ts:42:10
 → Session expires soon { userId: "123", expiresIn: "5m" }
 
 # Error with stack trace
-[14:25:37.389] [CLIENT/ERROR] app/pages/checkout.tsx:78:15 in processPayment()
+[14:25:37.389] [CLIENT/ERROR] app/pages/checkout.tsx:78:15
 → Payment failed Error: Card declined
   Path: /checkout
   User-Agent: Mozilla/5.0...
@@ -285,11 +279,8 @@ async function fetchWithLogging(url: string) {
 ```typescript
 import { UnifiedLogger } from 'next-log-terminal';
 
+// Create a custom logger instance (uses same config as global logger)
 const customLogger = new UnifiedLogger();
-customLogger.updateConfig({
-  showTimestamp: false,
-  logLevel: 'error',
-});
 
 export { customLogger };
 ```

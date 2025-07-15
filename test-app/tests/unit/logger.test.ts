@@ -26,9 +26,10 @@ describe('Logger in test-app', () => {
     expect(console.error).toHaveBeenCalledWith('Error message from test-app');
   });
 
-  it('should handle configuration updates', () => {
-    logger.updateConfig({ showTimestamp: false });
-    logger.log('Test message without timestamp');
-    expect(console.log).toHaveBeenCalledWith('Test message without timestamp');
+  it('should log with default configuration', () => {
+    logger.log('Test message with default config');
+    expect(console.log).toHaveBeenCalledWith(
+      'Test message with default config',
+    );
   });
 });

@@ -81,10 +81,6 @@ export class UnifiedLogger {
     this.config = getLoggerConfig();
   }
 
-  updateConfig(newConfig: Partial<LoggerConfig>) {
-    this.config = { ...this.config, ...newConfig };
-  }
-
   private shouldLog(level: keyof typeof logLevels): boolean {
     return logLevels[level] <= logLevels[this.config.logLevel];
   }

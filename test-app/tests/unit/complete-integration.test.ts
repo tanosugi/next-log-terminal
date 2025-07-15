@@ -35,16 +35,15 @@ describe('Complete next-log-terminal Integration Tests', () => {
   });
 
   describe('Comprehensive Logging Tests', () => {
-    it('should handle all log levels', () => {
-      // Set log level to debug to ensure debug messages are logged
-      logger.updateConfig({ logLevel: 'debug' });
-      logger.debug('Debug message');
+    it('should handle log levels with default configuration', () => {
+      logger.debug('Debug message'); // Won't log with default 'log' level
       logger.log('Log message');
       logger.info('Info message');
       logger.warn('Warning message');
       logger.error('Error message');
 
-      expect(console.log).toHaveBeenCalledWith(
+      // Debug should not log with default 'log' level
+      expect(console.log).not.toHaveBeenCalledWith(
         '%c[DEBUG]%c Debug message',
         'color: #6b7280; font-weight: bold;',
         'color: inherit;',
@@ -78,84 +77,35 @@ describe('Complete next-log-terminal Integration Tests', () => {
     });
   });
 
-  describe('Configuration Tests', () => {
-    it('should handle configuration updates', () => {
+  describe('Default Configuration Tests', () => {
+    it('should work with default configuration', () => {
       const customLogger = new UnifiedLogger();
 
-      customLogger.updateConfig({
-        showTimestamp: false,
-        showFileName: false,
-        logLevel: 'warn',
-      });
+      // With default configuration, only log level and above should work
+      customLogger.debug('Debug message'); // Won't log with default 'log' level
+      customLogger.log('Log message'); // This should log
+      customLogger.info('Info message');
+      customLogger.warn('Warning message');
+      customLogger.error('Error message');
 
-      // Should not log debug/info when level is warn
-      customLogger.debug('Should not appear');
-      customLogger.info('Should not appear');
-      expect(console.log).not.toHaveBeenCalled();
-      expect(console.info).not.toHaveBeenCalled();
-
-      // Should log warn and error
-      customLogger.warn('Should appear');
-      customLogger.error('Should appear');
-      expect(console.warn).toHaveBeenCalledWith('Should appear');
-      expect(console.error).toHaveBeenCalledWith('Should appear');
+      expect(console.log).toHaveBeenCalledWith('Log message');
+      expect(console.info).toHaveBeenCalledWith('Info message');
+      expect(console.warn).toHaveBeenCalledWith('Warning message');
+      expect(console.error).toHaveBeenCalledWith('Error message');
     });
 
-    it('should respect different log levels', () => {
-      const testLevels = ['error', 'warn', 'info', 'log', 'debug'] as const;
+    it('should handle multiple logger instances', () => {
+      const customLogger1 = new UnifiedLogger();
+      const customLogger2 = new UnifiedLogger();
 
-      for (const level of testLevels) {
-        const customLogger = new UnifiedLogger();
-        customLogger.updateConfig({ logLevel: level });
+      vi.clearAllMocks();
 
-        vi.clearAllMocks();
+      // Test both loggers work independently
+      customLogger1.info('Logger 1 message');
+      customLogger2.warn('Logger 2 message');
 
-        // Test each method
-        customLogger.error('error');
-        customLogger.warn('warn');
-        customLogger.info('info');
-        customLogger.log('log');
-        customLogger.debug('debug');
-
-        // Check expected behavior based on level
-        switch (level) {
-          case 'error':
-            expect(console.error).toHaveBeenCalled();
-            expect(console.warn).not.toHaveBeenCalled();
-            expect(console.info).not.toHaveBeenCalled();
-            expect(console.log).not.toHaveBeenCalledWith('log');
-            break;
-          case 'warn':
-            expect(console.error).toHaveBeenCalled();
-            expect(console.warn).toHaveBeenCalled();
-            expect(console.info).not.toHaveBeenCalled();
-            expect(console.log).not.toHaveBeenCalledWith('log');
-            break;
-          case 'info':
-            expect(console.error).toHaveBeenCalled();
-            expect(console.warn).toHaveBeenCalled();
-            expect(console.info).toHaveBeenCalled();
-            expect(console.log).not.toHaveBeenCalledWith('log');
-            break;
-          case 'log':
-            expect(console.error).toHaveBeenCalled();
-            expect(console.warn).toHaveBeenCalled();
-            expect(console.info).toHaveBeenCalled();
-            expect(console.log).toHaveBeenCalledWith('log');
-            break;
-          case 'debug':
-            expect(console.error).toHaveBeenCalled();
-            expect(console.warn).toHaveBeenCalled();
-            expect(console.info).toHaveBeenCalled();
-            expect(console.log).toHaveBeenCalledWith('log');
-            expect(console.log).toHaveBeenCalledWith(
-              '%c[DEBUG]%c debug',
-              'color: #6b7280; font-weight: bold;',
-              'color: inherit;',
-            );
-            break;
-        }
-      }
+      expect(console.info).toHaveBeenCalledWith('Logger 1 message');
+      expect(console.warn).toHaveBeenCalledWith('Logger 2 message');
     });
   });
 
